@@ -2,7 +2,7 @@
 --[[
 	- Modified by: Mawin CK 
 	- Date : 2025
-	-- Verison : 0.0.8
+	-- Verison : 0.0.9
 ]]
 
 -- Services
@@ -25,6 +25,9 @@ local MAX_CASTING_TIME = 0.2 -- 200ms
 
 local DEFAULT_MAX_DISTANCE = 1000
 
+-- Enums
+local EnumCastTypes = FastCastEnums.CastType
+
 -- Debugging
 local DBG_SEGMENT_SUB_COLOR = Color3.new(0.286275, 0.329412, 0.247059)
 local DBG_SEGMENT_SUB_COLOR2 = Color3.new(0.286275, 0.329412, 0.247059)
@@ -33,8 +36,61 @@ local DBG_HIT_SUB_COLOR = Color3.new(0.0588235, 0.87451, 1)
 
 local DBG_RAYPIERCE_SUB_COLOR = Color3.new(1, 0.113725, 0.588235)
 
+-- Types
+type vaildcast = TypeDef.ActiveCastData | TypeDef.ActiveBlockcastData | TypeDef.ActiveSpherecastData
+
+type BlockcastVariant = { CastType: numer, size: Vector3}
+type SpherecastVariant = { CastType: number, radius: number }
+type CastVariants = BlockcastVariant | SpherecastVariant
+
+type RayVisualizerVariant = { castLength: number}
+type BlockVisualizerVariant = { size: Vector3 }
+type SphereVisualizerVariant = { radius: number }
+type CastVisualizerVariants = RayVisualizerVariant | BlockVisualizerVariant | SphereVisualizerVariant
+
+type CastHandler = (WorldRoot: WorldRoot, origin: Vector3, direction: Vector3, castVariant: CastVariants) -> RaycastResult
+type CastVisualizer = (castStartCFrame: CFrame, VisualizeCasts: boolean, VisualizeCastSettings: TypeDef.VisualizeCastSettings, castVariant: CastVisualizerVariants) -> (ConeHandleAdornment | BoxHandleAdornment | SphereHandleAdornment)?
+
+-- I have no ideas, what I'm doing
 -- Automatic Performance setting
 local HIGH_FIDE_INCREASE_SIZE = 0.5
+
+-- Is this even useful?
+-- What Is even these magic numbers?
+local CastVariantTypes = {
+	[EnumCastTypes.Raycast] = "Raycast",
+	[EnumCastTypes.Blockcast] = "Blockcast",
+	[EnumCastTypes.Spherecast] = "Spherecast"
+}
+
+local castHandlers = {
+	[EnumCastTypes.Raycast] = function(
+		targetWorldRoot: WorldRoot,
+		origin: Vector3,
+		direction: Vector3,
+		parameters: RaycastParams
+	)
+		return targetWorldRoot:Raycast(origin, direction, parameters)
+	end,
+	[EnumCastTypes.Blockcast] = function(
+		targetWorldRoot: WorldRoot,
+		origin: Vector3,
+		direction: Vector3,
+		parameters: RaycastParams,
+		variant: BlockcastVariant
+	)
+		return targetWorldRoot:Blockcast(CFrame.new(origin), variant.Size, direction, parameters)
+	end,
+	[EnumCastTypes.Spherecast] = function(
+		targetWorldRoot: WorldRoot,
+		origin: Vector3,
+		direction: Vector3,
+		parameters: RaycastParams,
+		variant: SpherecastVariant
+	)
+		return targetWorldRoot:Spherecast(origin, variant.Radius, direction, parameters)
+	end
+}
 
 --[=[
 	@class ActiveCast
@@ -59,14 +115,14 @@ local function DebrisAdd(obj: Instance, Lifetime: number)
 end
 
 local function GetPositionAtTime(
-	time: number,
+	t: number,
 	origin: Vector3,
 	initialVelocity: Vector3,
 	acceleration: Vector3
 ): Vector3
 	local force =
-		Vector3.new((acceleration.X * time ^ 2) / 2, (acceleration.Y * time ^ 2) / 2, (acceleration.Z * time ^ 2) / 2)
-	return origin + (initialVelocity * time) + force
+		Vector3.new((acceleration.X * t ^ 2) / 2, (acceleration.Y * t ^ 2) / 2, (acceleration.Z * t ^ 2) / 2)
+	return origin + (initialVelocity * t) + force
 end
 
 local function GetVelocityAtTime(time: number, initialVelocity: Vector3, acceleration: Vector3): Vector3
@@ -97,7 +153,7 @@ end
 
 --[[
 local function GetTrajectoryInfo(
-	cast: TypeDef.ActiveCastCompement | TypeDef.ActiveBlockCast,
+	cast: TypeDef.ActiveCastData | TypeDef.ActiveBlockCast,
 	index: number
 ): { [number]: Vector3 }
 	assert(cast.StateInfo.UpdateConnection ~= nil, "ERR_OBJECT_DISPOSED")
@@ -112,18 +168,18 @@ local function GetTrajectoryInfo(
 	return { GetPositionAtTime(duration, origin, vel, accel), GetVelocityAtTime(duration, vel, accel) }
 end
 
-local function GetLatestTrajectoryEndInfo(cast: TypeDef.ActiveCastCompement): { [number]: Vector3 }
+local function GetLatestTrajectoryEndInfo(cast: TypeDef.ActiveCastData): { [number]: Vector3 }
 	return GetTrajectoryInfo(cast, #cast.StateInfo.Trajectories)
 end
 ]]
 
 -- Debugging
 
-local function DbgVisualizeSegment(
+local function DbgVisualizeRaySegment(
 	castStartCFrame: CFrame,
-	castLength: number,
 	VisualizeCasts: boolean,
-	VisualizeCastSettings: TypeDef.VisualizeCastSettings
+	VisualizeCastSettings: TypeDef.VisualizeCastSettings,
+	variant: CastVisualizerVariants
 ): ConeHandleAdornment?
 	if not VisualizeCasts then
 		return
@@ -131,13 +187,61 @@ local function DbgVisualizeSegment(
 	local adornment = Instance.new("ConeHandleAdornment")
 	adornment.Adornee = workspace.Terrain
 	adornment.CFrame = castStartCFrame
-	adornment.Height = castLength
+	adornment.Height = variant.castLength
 	adornment.Color3 = VisualizeCastSettings.Debug_SegmentColor
 	adornment.Radius = VisualizeCastSettings.Debug_SegmentSize
 	adornment.Transparency = VisualizeCastSettings.Debug_SegmentTransparency
 	adornment.Parent = GetFastCastVisualizationContainer()
 
 	DebrisAdd(adornment, VisualizeCastSettings.Debug_RayLifetime)
+	return adornment
+end
+
+local function DbgVisualizeBlockSegment(
+	castStartCFrame: CFrame,
+	VisualizeCasts: boolean,
+	VisualizeCastSetting: TypeDef.VisualizeCastSettings,
+	variant: BlockcastVariant
+): BoxHandleAdornment?
+	if not VisualizeCasts then
+		return
+	end
+	local adornment = Instance.new("BoxHandleAdornment")
+	adornment.Adornee = workspace.Terrain
+	adornment.CFrame = castStartCFrame
+	--adornment.Height = castLength
+		
+	adornment.Size = variant.size
+	adornment.Color3 = VisualizeCastSetting.Debug_SegmentColor
+	adornment.Transparency = VisualizeCastSetting.Debug_SegmentTransparency
+
+	adornment.Parent = GetFastCastVisualizationContainer()
+
+	DebrisAdd(adornment, VisualizeCastSetting.Debug_RayLifetime)
+	return adornment
+end
+
+local function DbgVisualizeSphereSegment(
+	castStartCFrame: CFrame,
+	VisualizeCasts: boolean,
+	VisualizeCastSetting: TypeDef.VisualizeCastSettings,
+	variant: SphereVisualizerVariant
+): SphereHandleAdornment?
+	if not VisualizeCasts then
+		return
+	end
+	local adornment = Instance.new("SphereHandleAdornment")
+	adornment.Adornee = workspace.Terrain
+	adornment.CFrame = castStartCFrame
+	--adornment.Height = castLength
+	adornment.Radius = variant.radius
+	--adornment.Size = Vector3.new(size.X, size.Y, size.Z + castLength)
+	adornment.Color3 = VisualizeCastSetting.Debug_SegmentColor
+	adornment.Transparency = VisualizeCastSetting.Debug_SegmentTransparency
+
+	adornment.Parent = GetFastCastVisualizationContainer()
+
+	DebrisAdd(adornment, VisualizeCastSetting.Debug_RayLifetime)
 	return adornment
 end
 
@@ -166,10 +270,16 @@ local function DbgVisualizeHit(
 	return adornment
 end
 
+local Visualizers = {
+	[EnumCastTypes.Raycast] = DbgVisualizeRaySegment,
+	[EnumCastTypes.Blockcast] = DbgVisualizeBlockSegment,
+	[EnumCastTypes.Spherecast] = DbgVisualizeSphereSegment
+}
+
 -- Send signals
 
 local function SendHit(
-	cast: TypeDef.ActiveCastCompement,
+	cast: vaildcast,
 	resultOfCast: RaycastResult,
 	segmentVelocity: Vector3,
 	cosmeticBulletObject: Instance?
@@ -186,7 +296,7 @@ local function SendHit(
 end
 
 local function SendPierced(
-	cast: TypeDef.ActiveCastCompement,
+	cast: vaildcast,
 	resultOfCast: RaycastResult,
 	segmentVelocity: Vector3,
 	cosmeticBulletObject: Instance?
@@ -202,7 +312,7 @@ local function SendPierced(
 end
 
 local function SendLengthChanged(
-	cast: TypeDef.ActiveCastCompement,
+	cast: vaildcast,
 	lastPoint: Vector3,
 	rayDir: Vector3,
 	rayDisplacement: number,
@@ -240,10 +350,11 @@ end
 end]]
 
 local function SimulateCast(
-	cast: TypeDef.ActiveCastCompement,
+	cast: vaildcast,
 	delta: number,
 	expectingShortCall: boolean,
-	FastCastEvents: TypeDef.FastCastEvents
+	FastCastEvents: TypeDef.FastCastEvents,
+	variant: CastVariants
 )
 	assert(cast.StateInfo.UpdateConnection ~= nil, "ERR_OBJECT_DISPOSED")
 
@@ -273,9 +384,15 @@ local function SimulateCast(
 	local totalDisplacement = currentTarget - lastPoint
 
 	local rayDir = totalDisplacement.Unit * segmentVelocity.Magnitude * delta
+	
+	local CastType = variant.CastType
 
 	local targetWorldRoot = cast.RayInfo.WorldRoot
-	local resultOfCast = targetWorldRoot:Raycast(lastPoint, rayDir, cast.RayInfo.Parameters)
+	
+	local CastHandler = castHandlers[CastType]
+	local Visualizer = Visualizers[CastType]
+
+	local resultOfCast = CastHandler(targetWorldRoot, lastPoint, rayDir, cast.RayInfo.Parameters, variant)
 
 	local point = currentTarget
 	local part: Instance? = nil
@@ -298,6 +415,16 @@ local function SimulateCast(
 
 	if typeof(latestTrajectory.Acceleration) ~= "Vector3" then
 		latestTrajectory.Acceleration = Vector3.new()
+	end
+	
+	local VisualizeVariant = {}
+	
+	if CastType == EnumCastTypes.Raycast then
+		VisualizeVariant.castLength = rayDisplacement
+	elseif CastType == EnumCastTypes.Blockcast then
+		VisualizeVariant.size = cast.RayInfo.Size
+	elseif CastType == EnumCastTypes.Spherecast then
+		VisualizeVariant.radius = cast.RayInfo.Radius
 	end
 
 	cast.CFrame = CFrame.new(lastPoint, lastPoint + rayDir) * CFrame.new(0, 0, -rayDisplacement / 2)
@@ -336,19 +463,21 @@ local function SimulateCast(
 	local rayVisualization: ConeHandleAdornment? = nil
 
 	if delta > 0 then
-		rayVisualization = DbgVisualizeSegment(
+		rayVisualization = Visualizer(
 			CFrame.new(lastPoint, lastPoint + rayDir),
-			rayDisplacement,
 			VisualizeCasts,
-			VisualizeCastSettings
+			VisualizeCastSettings,
+			VisualizeVariant
 		)
 	end
 
 	-- I feel so good
-
+	
+	-- NOTE: Please dont remove "part and"
+	-- Why? basically when part doesn't exist it will do nothing, but removing "part and" will break the logic
+	-- You can't do anything about it
 	if part and part ~= cast.RayInfo.CosmeticBulletObject then
-		--local start = tick()
-		--PrintDebug("Hit something, testing now.")
+		
 		if DebugLogging.Hit then
 			print("Hit something, testing now.")
 		end
@@ -360,7 +489,7 @@ local function SimulateCast(
 		if canPierceCheckfn ~= nil then
 			if expectingShortCall == false and cast.StateInfo.IsActivelySimulatingPierce then
 				FastCast:TerminateCast(cast, castTerminatingfn)
-				
+
 				warn(
 					"WARN: The latest call to CanPierceCallback took too long to complete! This cast is going to suffer desyncs which WILL cause unexpected behavior and errors. Please fix your performance problems, or remove statements that yield (e.g. wait() calls)"
 				)
@@ -436,18 +565,22 @@ local function SimulateCast(
 					local subVelocity =
 						GetVelocityAtTime(lastDelta + (timeIncrement * segmentIndex), initialVelocity, acceleration)
 					local subRayDir = subVelocity * delta
-					local subResult = targetWorldRoot:Raycast(subPosition, subRayDir, cast.RayInfo.Parameters)
+					local subResult = CastHandler(targetWorldRoot, subPosition, subRayDir, cast.RayInfo.Parameters)
 
 					local subDisplacement = (subPosition - (subPosition + subVelocity)).Magnitude
+					
+					if CastType == EnumCastTypes.Raycast then
+						VisualizeVariant.castLength = subDisplacement
+					end
 
 					-- What?
 					if subResult ~= nil then
 						subDisplacement = (subPosition - subResult.Position).Magnitude
-						local dbgSeg = DbgVisualizeSegment(
+						local dbgSeg = Visualizer(
 							CFrame.new(subPosition, subPosition + subVelocity),
-							subDisplacement,
 							VisualizeCasts,
-							VisualizeCastSettings
+							VisualizeCastSettings,
+							VisualizeVariant
 						)
 						if dbgSeg ~= nil then
 							dbgSeg.Color3 = DBG_SEGMENT_SUB_COLOR
@@ -456,7 +589,7 @@ local function SimulateCast(
 						if
 							canPierceCheckfn == nil
 							or canPierceCheckfn(cast, subResult, subVelocity, cast.RayInfo.CosmeticBulletObject)
-								== false
+							== false
 						then
 							cast.StateInfo.IsActivelyResimulating = false
 
@@ -485,11 +618,11 @@ local function SimulateCast(
 							--if (dbgSeg ~= nil) then dbgSeg.Color3 = DBG_RAYPIERCE_SEGMENT_COLOR end
 						end
 					else
-						local dbgSeg = DbgVisualizeSegment(
+						local dbgSeg = Visualizer(
 							CFrame.new(subPosition, subPosition + subVelocity),
-							subDisplacement,
 							VisualizeCasts,
-							VisualizeCastSettings
+							VisualizeCastSettings,
+							VisualizeVariant
 						)
 						if dbgSeg ~= nil then
 							dbgSeg.Color3 = DBG_SEGMENT_SUB_COLOR2
@@ -590,7 +723,7 @@ local function SimulateCast(
 				if
 					canPierceCheckfn
 					and canPierceCheckfn(cast, resultOfCast, segmentVelocity, cast.RayInfo.CosmeticBulletObject)
-						== false
+					== false
 				then
 					brokeFromSolidObject = true
 					break
@@ -652,17 +785,18 @@ end
 	
 	@param eventModule TypeDef.FastCastEventsModule -- The event module to use for this cast.	
 
-	@return ActiveCastCompement -- The newly created ActiveCastCompement.
+	@return ActiveCastData -- The newly created ActiveCastData.
 ]=]
-function ActiveCast.new(
+function ActiveCast.createCastData(
 	BaseCast: TypeDef.BaseCastData,
 	activeCastID: number,
 	origin: Vector3,
 	direction: Vector3,
 	velocity: Vector3 | number,
 	behavior: TypeDef.FastCastBehavior,
-	eventModule: TypeDef.FastCastEventsModule?
-): TypeDef.ActiveCastCompement
+	eventModule: TypeDef.FastCastEventsModule?,
+	variant: CastVariants
+): vaildcast
 	if typeof(velocity) == "number" then
 		velocity = direction.Unit * velocity
 	end
@@ -678,7 +812,7 @@ function ActiveCast.new(
 		behavior.HighFidelityBehavior = 3
 	end
 
-	local cast: TypeDef.ActiveCastCompement = {
+	local cast = {
 		Caster = BaseCast,
 
 		StateInfo = {
@@ -724,15 +858,21 @@ function ActiveCast.new(
 			WorldRoot = workspace,
 			MaxDistance = behavior.MaxDistance or DEFAULT_MAX_DISTANCE,
 			CosmeticBulletObject = behavior.CosmeticBulletTemplate,
-			FastCastEventsModule = eventModule,
+			FastCastEventsModule = eventModule
 		},
 
 		UserData = {},
 
-		Type = "Raycast",
+		Type = CastVariantTypes[variant.CastType],
 		CFrame = CFrame.new(),
 		ID = activeCastID,
 	} :: any
+	
+	if variant.CastType == EnumCastTypes.Blockcast then
+		cast.RayInfo.Size = variant.Size
+	elseif variant.CastType == EnumCastTypes.Spherecast then
+		cast.RayInfo.Radius = variant.Radius
+	end
 
 	if behavior.UserData then
 		cast.UserData = behavior.UserData
@@ -764,6 +904,7 @@ function ActiveCast.new(
 
 			cast.RayInfo.CosmeticBulletObject = basePart
 		end
+		
 		if behavior.CosmeticBulletContainer then
 			targetContainer = behavior.CosmeticBulletContainer
 		end
@@ -818,7 +959,7 @@ function ActiveCast.new(
 			local Segment_timeAtStart = tick()
 
 			local castTerminatingfn: TypeDef.OnCastTerminatingFunction? = cast.StateInfo.FastCastEventsModuleConfig.UseCastTerminating
-					and FastCastEvents.CastTerminating
+				and FastCastEvents.CastTerminating
 				or nil
 			if cast.StateInfo.IsActivelyResimulating then
 				FastCast:TerminateCast(cast, castTerminatingfn)
@@ -850,7 +991,11 @@ function ActiveCast.new(
 			local rayDir = totalDisplacement.Unit * currentVelocity.Magnitude * delta
 
 			local targetWorldRoot = cast.RayInfo.WorldRoot
-			local resultOfCast = targetWorldRoot:Raycast(lastPoint, rayDir, cast.RayInfo.Parameters)
+			
+			-- Is this how it works?
+			local CastHandler = castHandlers[variant.CastType]
+			
+			local resultOfCast = CastHandler(targetWorldRoot, lastPoint, rayDir, cast.RayInfo.Parameters, variant)
 
 			local point = currentPoint
 
@@ -888,7 +1033,7 @@ function ActiveCast.new(
 				end
 
 				--PrintDebug("[" .. segmentIndex .. "] Subcast of time increment " .. timeIncrement)
-				SimulateCast(cast, timeIncrement, true, FastCastEvents)
+				SimulateCast(cast, timeIncrement, true, FastCastEvents, variant)
 			end
 
 			if cast == nil or next(cast) == nil then
@@ -911,7 +1056,7 @@ function ActiveCast.new(
 				cast.StateInfo.HighFidelitySegmentSize += HighFideSizeAmount
 			end
 		else
-			SimulateCast(cast, delta, false, FastCastEvents)
+			SimulateCast(cast, delta, false, FastCastEvents, variant)
 		end
 
 		if
