@@ -7,6 +7,19 @@ and this project adheres to Semantic Versioning (https://semver.org/).
 
 ---
 
+## [0.0.9] — 2026-02-22
+### Changelog
+- Refactored ActiveCast.luau
+- Merged ActiveBlockcast.luau and ActiveSpherecast.luau with ActiveCast.luau
+- Updated TypeDef, Enums, FastCastVMs
+
+### Fixed
+
+- Spherecast not working
+- Type errors
+- Typo fixes
+- No longer errors now when attempting to index with FastCastEvents with guarding
+
 ## [0.0.8] — 2026-02-22
 ### Added
 - Spherecast feature — adds sphere-based casting for broader collision detection and hits testing.
