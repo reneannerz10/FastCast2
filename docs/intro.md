@@ -15,7 +15,7 @@ Because FastCast is no longer actively maintained by [EtiTheSpirit](https://gith
 - Versatile projectile library
 - Parallel scripting support
 - Easy to use and integrate
-- Raycast and Blockcast support
+- Raycast and Blockcast, Spherecast support
 - BulkMoveTo support
 - Built-in ObjectCache
 - Flexible and extensible design
