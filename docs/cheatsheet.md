@@ -167,6 +167,9 @@ cast.RayInfo.MaxDistance: number               -- Maximum travel distance before
 cast.RayInfo.CosmeticBulletObject: Instance?   -- The cosmetic bullet object attached to this cast (if any).
 cast.RayInfo.CanPierceModule: ModuleScript?    -- Optional pierce-decision module (legacy / manual pierce setup).
 
+cast.RayInfo.Size: Vector3 -- Blockcast addon RayInfo
+cast.RayInfo.Radius: number -- Spherecast addon RayInfo
+
 --// BaseCastData (cast.Caster)
 
 cast.Caster.Output: BindableEvent              -- Internal event used to relay cast signals back to the Caster.
