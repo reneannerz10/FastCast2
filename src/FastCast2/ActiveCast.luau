@@ -352,7 +352,6 @@ end]]
 local function SimulateCast(
 	cast: any,
 	delta: number,
-	expectingShortCall: boolean,
 	FastCastEvents: TypeDef.FastCastEvents,
 	variant: CastVariants
 )
@@ -484,17 +483,6 @@ local function SimulateCast(
 
 		if DebugLogging.RayPierce and canPierceCheckfn == nil then
 			print("No piercing function set, proceeding to hit processing.")
-		end
-
-		if canPierceCheckfn ~= nil then
-			if expectingShortCall == false and cast.StateInfo.IsActivelySimulatingPierce then
-				FastCast:TerminateCast(cast, castTerminatingfn)
-
-				warn(
-					"WARN: The latest call to CanPierceCallback took too long to complete! This cast is going to suffer desyncs which WILL cause unexpected behavior and errors. Please fix your performance problems, or remove statements that yield (e.g. wait() calls)"
-				)
-			end
-			cast.StateInfo.IsActivelySimulatingPierce = true
 		end
 
 		if
@@ -666,92 +654,9 @@ local function SimulateCast(
 				rayVisualization.Color3 = Color3.new(0.4, 0.05, 0.05)
 			end
 			DbgVisualizeHit(CFrame.new(point), true, VisualizeCasts, VisualizeCastSettings)
-
-			local params = cast.RayInfo.Parameters
-			local alteredParts = {}
-			local currentPierceTestCount = 0
-			local originalFilter = params.FilterDescendantsInstances
-			local brokeFromSolidObject = false
-			while true do
-				if resultOfCast.Instance:IsA("Terrain") then
-					if material == Enum.Material.Water then
-						FastCast:TerminateCast(cast, castTerminatingfn)
-
-						error(
-							"Do not add Water as a piercable material. If you need to pierce water, set cast.RayInfo.Parameters.IgnoreWater = true instead",
-							0
-						)
-					end
-					warn(
-						"WARNING: The pierce callback for this cast returned TRUE on Terrain! This can cause severely adverse effects."
-					)
-				end
-
-				if params.FilterType == Enum.RaycastFilterType.Exclude then
-					local filter = params.FilterDescendantsInstances
-					table.insert(filter, resultOfCast.Instance)
-					table.insert(alteredParts, resultOfCast.Instance)
-					params.FilterDescendantsInstances = filter
-				else
-					local filter = params.FilterDescendantsInstances
-					table.remove(filter, resultOfCast.Instance)
-					table.insert(alteredParts, resultOfCast.Instance)
-					params.FilterDescendantsInstances = filter
-				end
-
-				SendPierced(cast, resultOfCast, segmentVelocity, cast.RayInfo.CosmeticBulletObject)
-				if Piercedfn then
-					Piercedfn(cast, resultOfCast, segmentVelocity, cast.RayInfo.CosmeticBulletObject)
-				end
-
-				resultOfCast = targetWorldRoot:Raycast(lastPoint, rayDir, params)
-
-				if resultOfCast == nil then
-					break
-				end
-
-				if currentPierceTestCount >= MAX_PIERCE_TEST_COUNT then
-					warn(
-						"WARNING: Exceeded maximum pierce test budget for a single ray segment (attempted to test the same segment "
-							.. MAX_PIERCE_TEST_COUNT
-							.. " times!)"
-					)
-					break
-				end
-				currentPierceTestCount = currentPierceTestCount + 1
-
-				if
-					canPierceCheckfn
-					and canPierceCheckfn(cast, resultOfCast, segmentVelocity, cast.RayInfo.CosmeticBulletObject)
-					== false
-				then
-					brokeFromSolidObject = true
-					break
-				end
-			end
-
-			cast.RayInfo.Parameters.FilterDescendantsInstances = originalFilter
-			cast.StateInfo.IsActivelySimulatingPierce = false
-
-			if brokeFromSolidObject then
-				--PrintDebug("Broke because the ray hit something solid (" .. tostring(resultOfCast.Instance) .. ") while testing for a pierce. Terminating the cast.")
-
-				if DebugLogging.Hit then
-					print(
-						"Broke because the ray hit something solid ("
-							.. tostring(resultOfCast.Instance)
-							.. ") while testing for a pierce. Terminating the cast."
-					)
-				end
-
-				SendHit(cast, resultOfCast, segmentVelocity, cast.RayInfo.CosmeticBulletObject)
-				if Hitfn then
-					Hitfn(cast, resultOfCast, segmentVelocity, cast.RayInfo.CosmeticBulletObject)
-				end
-				FastCast:TerminateCast(cast, castTerminatingfn)
-
-				DbgVisualizeHit(CFrame.new(resultOfCast.Position), false, VisualizeCasts, VisualizeCastSettings)
-				return
+			SendPierced(cast, resultOfCast, segmentVelocity, cast.RayInfo.CosmeticBulletObject)
+			if Piercedfn then
+				Piercedfn(cast, resultOfCast, segmentVelocity, cast.RayInfo.CosmeticBulletObject)
 			end
 		end
 	end
@@ -1036,7 +941,7 @@ function ActiveCast.createCastData(
 				end
 
 				--PrintDebug("[" .. segmentIndex .. "] Subcast of time increment " .. timeIncrement)
-				SimulateCast(cast, timeIncrement, true, FastCastEvents, variant)
+				SimulateCast(cast, timeIncrement, FastCastEvents, variant)
 			end
 
 			if cast == nil or next(cast) == nil then
@@ -1059,7 +964,7 @@ function ActiveCast.createCastData(
 				cast.StateInfo.HighFidelitySegmentSize += HighFideSizeAmount
 			end
 		else
-			SimulateCast(cast, delta, false, FastCastEvents, variant)
+			SimulateCast(cast, delta, FastCastEvents, variant)
 		end
 
 		if
