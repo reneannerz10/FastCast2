@@ -237,7 +237,7 @@ end
 return module
 ```
 
-After this add this piece of code below the `FastCast:Init(...)`:
+After, this add this piece of code below the `FastCast:Init(...)`:
 
 ```lua
 	Caster:SetFastCastEventsModule(pathTo.FastCastEventsModule)
