@@ -394,7 +394,7 @@ export type BlockCastRayInfo = {
 	WorldRoot: WorldRoot,
 	MaxDistance: number,
 	CosmeticBulletObject: Instance?,
-	--CanPierceModule: CanPierceModule?,
+
 	Size: Vector3,
 }
 
@@ -409,7 +409,7 @@ export type SphereCastRayInfo = {
 	WorldRoot: WorldRoot,
 	MaxDistance: number,
 	CosmeticBulletObject: Instance?,
-	--CanPierceModule: CanPierceModule?,
+	
 	Radius: number,
 }
 
