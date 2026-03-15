@@ -13,7 +13,10 @@
 	Type definitions for strict-typing.
 ]=]
 
+local SignalModule = require(script.Parent:WaitForChild("Signal"))
 local Dispatcher = require(script.Parent:WaitForChild("FastCastVMs"))
+
+type Signal<T...> = SignalModule.Signal<T...>
 
 --[=[
 	@type vaildcast ActiveCastData | ActiveBlockcastData
@@ -148,11 +151,11 @@ export type ObjectCache = {
 ]=]
 export type Caster = {
 	WorldRoot: WorldRoot,
-	LengthChanged: RBXScriptSignal,
-	Hit: RBXScriptSignal,
-	Pierced: RBXScriptSignal,
-	CastTerminating: RBXScriptSignal,
-	CastFire: RBXScriptSignal,
+	LengthChanged: Signal<OnLengthChangedFunction> | OnLengthChangedFunction,
+	Hit: Signal<OnHitFunction> | OnHitFunction,
+	Pierced: Signal<OnPiercedFunction> | OnPiercedFunction,
+	CastTerminating: Signal<OnCastTerminatingFunction> | OnCastTerminatingFunction,
+	CastFire: Signal<OnCastFireFunction> | OnCastFireFunction,
 	Dispatcher: Dispatcher.Dispatcher,
 	ObjectCache: ObjectCache,
 
