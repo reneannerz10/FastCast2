@@ -218,14 +218,14 @@ export type Caster = {
 
 	AddVelocityCast: (Caster, cast: vaildcast, velocity: Vector3) -> (),
 	SetVelocityCast: (Caster, cast: vaildcast, velocity: Vector3) -> (),
-	GetVelocityCast: (Caster, cast: vaildcast, velocity: Vector3) -> Vector3,
+	GetVelocityCast: (Caster, cast: vaildcast) -> Vector3,
 
-	AddAccelerationCast: (Caster, cast: vaildcast) -> Vector3,
-	GetAccelerationCast: (Caster, cast: vaildcast) -> Vector3,
+	AddAccelerationCast: (Caster, cast: vaildcast, acceleration: Vector3) -> Vector3,
 	SetAccelerationCast: (Caster, cast: vaildcast, acceleration: Vector3) -> (),
+	GetAccelerationCast: (Caster, cast: vaildcast) -> Vector3,
 
-	GetPositionCast: (Caster, cast: vaildcast, Position: Vector3) -> Vector3,
 	AddPositionCast: (Caster, cast: vaildcast, Position: Vector3) -> (),
+	GetPositionCast: (Caster, cast: vaildcast) -> Vector3,
 
 	ResumeCast: (Caster, cast: vaildcast) -> (),
 	PauseCast: (Caster, cast: vaildcast) -> (),
