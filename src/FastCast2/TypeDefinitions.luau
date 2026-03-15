@@ -399,7 +399,7 @@ export type BlockCastRayInfo = {
 }
 
 --[=[
-	@type SpherecastRayInfo { Parameters: RaycastParams, WorldRoot: WorldRoot, MaxDistance: number, CosmeticBulletObject: Instance?, CanPierceModule: ModuleScript?, Radius: Vector3 }
+	@type SpherecastRayInfo { Parameters: RaycastParams, WorldRoot: WorldRoot, MaxDistance: number, CosmeticBulletObject: Instance?, CanPierceModule: ModuleScript?, Radius: number }
 	@within TypeDefinitions
 
 	Ray info for sphere-cast variants.
