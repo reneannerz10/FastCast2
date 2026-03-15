@@ -13,10 +13,13 @@
 	Type definitions for strict-typing.
 ]=]
 
+local SignalModule = require(script.Parent:WaitForChild("Signal"))
 local Dispatcher = require(script.Parent:WaitForChild("FastCastVMs"))
 
+type Signal<T...> = SignalModule.Signal<T...>
+
 --[=[
-	@type vaildcast ActiveCastData | ActiveBlockcastData
+	@type vaildcast ActiveCastData | ActiveBlockcastData | ActiveSpherecastData
 	@within TypeDefinitions
 
 	A type that can be either an ActiveCast or an ActiveBlockcast.
@@ -48,52 +51,52 @@ export type FastCastEvents = {
 }
 
 --[=[
-	@type CanPierceFunction (vaildcast, RaycastResult, Vector3, Instance?) -> boolean
+	@type CanPierceFunction (cast: vaildcast, result: RaycastResult, segmentVelocity: Vector3, cosmeticBulletObject: Instance?) -> boolean
 	@within TypeDefinitions
 
 	Callback used to decide whether a cast should pierce and continue after a hit.
 ]=]
 export type CanPierceFunction = (
-	vaildcast,
-	RaycastResult,
+	cast: vaildcast,
+	result: RaycastResult,
 	segmentVelocity: Vector3,
 	cosmeticBulletObject: Instance?
 ) -> boolean
 
 --[=[
-	@type OnHitFunction (vaildcast, RaycastResult, Vector3, Instance?) -> ()
+	@type OnHitFunction (cast: vaildcast, result: RaycastResult, segmentVelocity: Vector3, cosmeticBulletObject: Instance?) -> ()
 	@within TypeDefinitions
 
 	Callback fired when the cast hits something (non-piercing).
 ]=]
 export type OnHitFunction = (
-	vaildcast,
-	RaycastResult,
+	cast: vaildcast,
+	result: RaycastResult,
 	segmentVelocity: Vector3,
 	cosmeticBulletObject: Instance?
 ) -> ()
 
 --[=[
-	@type OnPierceFunction (vaildcast, RaycastResult, Vector3, Instance?) -> ()
+	@type OnPierceFunction (cast: vaildcast, result: RaycastResult, segmentVelocity: Vector3, cosmeticBulletObject: Instance?) -> ()
 	@within TypeDefinitions
 
 	Callback fired when the cast pierces something.
 ]=]
 export type OnPiercedFunction = (
-	vaildcast,
-	RaycastResult,
+	cast: vaildcast,
+	result: RaycastResult,
 	segmentVelocity: Vector3,
 	cosmeticBulletObject: Instance?
 ) -> ()
 
 --[=[
-	@type OnLengthChangedFunction (vaildcast, Vector3, Vector3, number, Vector3, Instance?) -> ()
+	@type OnLengthChangedFunction (cast: vaildcast, lastPoint: Vector3, rayDir: Vector3, rayDisplacement: number, segmentVelocity: Vector3, cosmeticBulletObject: Instance?) -> ()
 	@within TypeDefinitions
 
 	Callback fired when the cast's length changes as it updates.
 ]=]
 export type OnLengthChangedFunction = (
-	vaildcast,
+	cast: vaildcast,
 	lastPoint: Vector3,
 	rayDir: Vector3,
 	rayDisplacement: number,
@@ -102,24 +105,24 @@ export type OnLengthChangedFunction = (
 ) -> ()
 
 --[=[
-	@type OnCastTerminatingFunction (vaildcast) -> ()
+	@type OnCastTerminatingFunction (cast: vaildcast) -> ()
 	@within TypeDefinitions
 
 	Callback fired right as an ActiveCast is terminating.
 ]=]
-export type OnCastTerminatingFunction = (vaildcast) -> ()
+export type OnCastTerminatingFunction = (cast:  vaildcast) -> ()
 
 --[=[
-	@type OnCastFireFunction (vaildcast, Vector3, Vector3, Vector3, FastCastBehavior) -> ()
+	@type OnCastFireFunction (cast: vaildcast, lastPoint: Vector3, rayDir: Vector3, segmentVelocity: Vector3, behavior: FastCastBehavior) -> ()
 	@within TypeDefinitions
 
 	Callback fired when a cast is initially fired.
 ]=]
 export type OnCastFireFunction = (
-	vaildcast,
-	Origin: Vector3,
-	Direction: Vector3,
-	Velocity: Vector3,
+	cast: vaildcast,
+	lastPoint: Vector3,
+	rayDir: Vector3,
+	segmentVelocity: Vector3,
 	behavior: FastCastBehavior
 ) -> ()
 
@@ -140,7 +143,7 @@ export type ObjectCache = {
 }
 
 --[=[
-	@type Caster { WorldRoot: WorldRoot, LengthChanged: RBXScriptSignal, Hit: RBXScriptSignal, Pierced: RBXScriptSignal, CastTerminating: RBXScriptSignal, CastFire: RBXScriptSignal, Dispatcher: Dispatcher.Dispatcher, ObjectCache: ObjectCache, AlreadyInit: boolean, ObjectCacheEnabled: boolean, BulkMoveEnabled: boolean, FastCastEventsModule: FastCastEventsModule, Init: ( self: Caster, numWorkers: number, newParent: Folder, newName: string, ContainerParent: Folder, VMContainerName: string, VMname: string, useBulkMoveTo: boolean, FastCastEventsModule: ModuleScript, useObjectCache: boolean, Template: BasePart | Model, CacheSize: number, CacheHolder: Instance ) -> (), RaycastFire: ( Caster, Origin: Vector3, Direction: Vector3, Velocity: Vector3 | number, Behavior: FastCastBehavior ) -> (), BlockcastFire: ( self: Caster, Origin: Vector3, Size: Vector3, Direction: Vector3, Velocity: Vector3 | number, Behavior: FastCastBehavio ) -> (), SetBulkMoveEnabled: (self: Caster, enabled: boolean) -> (), SetObjectCacheEnabled: ( self: Caster, enabled: boolean, Template: BasePart | Model, CacheSize: number, CacheHolder: Instance ) -> (), SetFastCastEventsModule: (self: Caster, moduleScript: ModuleScript) -> (), AddVelocityCast: (Caster, cast: vaildcast, velocity: Vector3) -> (), SetVelocityCast: (Caster, cast: vaildcast, velocity: Vector3) -> (), GetVelocityCast: (Caster, cast: vaildcast, velocity: Vector3) -> Vector3, AddAccelerationCast: (Caster, cast: vaildcast) -> Vector3, GetAccelerationCast: (Caster, cast: vaildcast) -> Vector3, SetAccelerationCast: (Caster, cast: vaildcast, acceleration: Vector3) -> (), GetPositionCast: (Caster, cast: vaildcast, Position: Vector3) -> Vector3, AddPositionCast: (Caster, cast: vaildcast, Position: Vector3) -> (), ResumeCast: (Caster, cast: vaildcast) -> (), PauseCast: (Caster, cast: vaildcast) -> (), SyncChangesToCast: (Caster, cast: vaildcast) -> (), TerminateCast: (Caster, cast: vaildcast) -> (), Destroy: (Caster) -> () }
+	@type Caster { WorldRoot: WorldRoot, LengthChanged: Signal<OnLengthChangedFunction> | OnLengthChangedFunction, Hit: Signal<OnHitFunction> | OnHitFunction, Pierced: Signal<OnPiercedFunction> | OnPiercedFunction, CastTerminating: Signal<OnCastTerminatingFunction> | OnCastTerminatingFunction, CastFire: Signal<OnCastFireFunction> | OnCastFireFunction, Dispatcher: Dispatcher.Dispatcher, ObjectCache: ObjectCache, AlreadyInit: boolean, ObjectCacheEnabled: boolean, BulkMoveEnabled: boolean, FastCastEventsModule: FastCastEventsModule, Init: ( self: Caster, numWorkers: number, newParent: Folder, newName: string, ContainerParent: Folder, VMContainerName: string, VMname: string, useBulkMoveTo: boolean, FastCastEventsModule: ModuleScript, useObjectCache: boolean, Template: BasePart | Model, CacheSize: number, CacheHolder: Instance ) -> (), RaycastFire: ( Caster, Origin: Vector3, Direction: Vector3, Velocity: Vector3 | number, Behavior: FastCastBehavior ) -> (), BlockcastFire: ( self: Caster, Origin: Vector3, Size: Vector3, Direction: Vector3, Velocity: Vector3 | number, Behavior: FastCastBehavio ) -> (), SetBulkMoveEnabled: (self: Caster, enabled: boolean) -> (), SetObjectCacheEnabled: ( self: Caster, enabled: boolean, Template: BasePart | Model, CacheSize: number, CacheHolder: Instance ) -> (), SetFastCastEventsModule: (self: Caster, moduleScript: ModuleScript) -> (), AddVelocityCast: (Caster, cast: vaildcast, velocity: Vector3) -> (), SetVelocityCast: (Caster, cast: vaildcast, velocity: Vector3) -> (), GetVelocityCast: (Caster, cast: vaildcast, velocity: Vector3) -> Vector3, AddAccelerationCast: (Caster, cast: vaildcast) -> Vector3, GetAccelerationCast: (Caster, cast: vaildcast) -> Vector3, SetAccelerationCast: (Caster, cast: vaildcast, acceleration: Vector3) -> (), GetPositionCast: (Caster, cast: vaildcast, Position: Vector3) -> Vector3, AddPositionCast: (Caster, cast: vaildcast, Position: Vector3) -> (), ResumeCast: (Caster, cast: vaildcast) -> (), PauseCast: (Caster, cast: vaildcast) -> (), SyncChangesToCast: (Caster, cast: vaildcast) -> (), TerminateCast: (Caster, cast: vaildcast) -> (), Destroy: (Caster) -> () }
 	
 	@within TypeDefinitions
 
@@ -148,11 +151,11 @@ export type ObjectCache = {
 ]=]
 export type Caster = {
 	WorldRoot: WorldRoot,
-	LengthChanged: RBXScriptSignal,
-	Hit: RBXScriptSignal,
-	Pierced: RBXScriptSignal,
-	CastTerminating: RBXScriptSignal,
-	CastFire: RBXScriptSignal,
+	LengthChanged: Signal<OnLengthChangedFunction> | OnLengthChangedFunction,
+	Hit: Signal<OnHitFunction> | OnHitFunction,
+	Pierced: Signal<OnPiercedFunction> | OnPiercedFunction,
+	CastTerminating: Signal<OnCastTerminatingFunction> | OnCastTerminatingFunction,
+	CastFire: Signal<OnCastFireFunction> | OnCastFireFunction,
 	Dispatcher: Dispatcher.Dispatcher,
 	ObjectCache: ObjectCache,
 
@@ -215,14 +218,14 @@ export type Caster = {
 
 	AddVelocityCast: (Caster, cast: vaildcast, velocity: Vector3) -> (),
 	SetVelocityCast: (Caster, cast: vaildcast, velocity: Vector3) -> (),
-	GetVelocityCast: (Caster, cast: vaildcast, velocity: Vector3) -> Vector3,
+	GetVelocityCast: (Caster, cast: vaildcast) -> Vector3,
 
-	AddAccelerationCast: (Caster, cast: vaildcast) -> Vector3,
-	GetAccelerationCast: (Caster, cast: vaildcast) -> Vector3,
+	AddAccelerationCast: (Caster, cast: vaildcast, acceleration: Vector3) -> Vector3,
 	SetAccelerationCast: (Caster, cast: vaildcast, acceleration: Vector3) -> (),
+	GetAccelerationCast: (Caster, cast: vaildcast) -> Vector3,
 
-	GetPositionCast: (Caster, cast: vaildcast, Position: Vector3) -> Vector3,
 	AddPositionCast: (Caster, cast: vaildcast, Position: Vector3) -> (),
+	GetPositionCast: (Caster, cast: vaildcast) -> Vector3,
 
 	ResumeCast: (Caster, cast: vaildcast) -> (),
 	PauseCast: (Caster, cast: vaildcast) -> (),
@@ -391,12 +394,12 @@ export type BlockCastRayInfo = {
 	WorldRoot: WorldRoot,
 	MaxDistance: number,
 	CosmeticBulletObject: Instance?,
-	--CanPierceModule: CanPierceModule?,
+
 	Size: Vector3,
 }
 
 --[=[
-	@type BlockCastRayInfo { Parameters: RaycastParams, WorldRoot: WorldRoot, MaxDistance: number, CosmeticBulletObject: Instance?, CanPierceModule: ModuleScript?, Size: Vector3 }
+	@type SpherecastRayInfo { Parameters: RaycastParams, WorldRoot: WorldRoot, MaxDistance: number, CosmeticBulletObject: Instance?, CanPierceModule: ModuleScript?, Radius: number }
 	@within TypeDefinitions
 
 	Ray info for sphere-cast variants.
@@ -406,7 +409,7 @@ export type SphereCastRayInfo = {
 	WorldRoot: WorldRoot,
 	MaxDistance: number,
 	CosmeticBulletObject: Instance?,
-	--CanPierceModule: CanPierceModule?,
+
 	Radius: number,
 }
 
