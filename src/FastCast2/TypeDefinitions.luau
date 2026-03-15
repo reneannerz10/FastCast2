@@ -120,9 +120,9 @@ export type OnCastTerminatingFunction = (vaildcast) -> ()
 ]=]
 export type OnCastFireFunction = (
 	cast: vaildcast,
-	Origin: Vector3,
-	Direction: Vector3,
-	Velocity: Vector3,
+	lastPoint: Vector3,
+	rayDir: Vector3,
+	segmentVelocity: Vector3,
 	behavior: FastCastBehavior
 ) -> ()
 
