@@ -85,13 +85,6 @@ local function SendCastFire(
 	cast.Caster.Output:Fire("CastFire", cast, origin, direction, velocity, behavior)
 end
 
-local function GetCastFireFunction()
-	if FastCastEventsModule then
-		local loadedModule = require(FastCastEventsModule)
-		return loadedModule.CastFire
-	end
-end
-
 --[=[
 
 @function Init
