@@ -143,7 +143,7 @@ function BaseCast.Init(BindableOutput: BindableEvent, Data: any)
 	SyncChanges.Name = "SyncChanges"
 	SyncChanges.Parent = Actor
 
-	SyncChanges.Event:Connect(function(cast: TypeDef.ActiveCastCompement)
+	SyncChanges.Event:Connect(function(cast: TypeDef.ActiveCastData)
 		local ID = cast.ID
 		local TargetCast = Actives[ID]
 
