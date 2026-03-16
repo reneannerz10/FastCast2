@@ -273,7 +273,7 @@ function FastCast:Init(
 		warn("Cannot Init more than 1")
 		return
 	end
-	assert(numWorkers > 1, "numWorker must be more than 1")
+	assert(numWorkers >= 1, "numWorker must be more than 1")
 
 	local DispatcherClone = DispatcherModule:Clone()
 	DispatcherClone.Parent = newParent
@@ -318,7 +318,9 @@ function FastCast:Init(
 	self.ObjectCacheEnabled = useObjectCache
 	self.BulkMoveEnabled = useBulkMoveTo
 	
-	self:SetFastCastEventsModule(FastCastEventsModule)
+	if FastCastEventsModule then
+		self:SetFastCastEventsModule(FastCastEventsModule)
+	end
 	
 
 	if not useObjectCache then
@@ -449,10 +451,10 @@ end
 
 Gets the velocity of an ActiveCast.
 
-@method GetVelocityCast
-@param cast ActiveCastCompement | ActiveBlockcastCompement -- Compement
-@within FastCast
-@return Vector3 -- The current velocity of the ActiveCast.
+	@method GetVelocityCast
+	@param cast vaildcast -- The active cast to get the velocity of.
+	@within FastCast
+	@return Vector3 -- The current velocity of the ActiveCast.
 ]=]
 function FastCast:GetVelocityCast(cast: vaildcast)
 	assert(cast.StateInfo.UpdateConnection ~= nil, "ERR_OBJECT_DISPOSED")
@@ -468,30 +470,26 @@ end
 
 Gets the acceleration of an ActiveCast.
 
-@method GetAccelerationCast
-@param cast ActiveCastCompement | ActiveBlockcastCompement -- Compement
-@within FastCast
-@return Vector3 -- The current acceleration of the ActiveCast.
+	@method GetAccelerationCast
+	@param cast vaildcast -- The active cast to get the acceleration of.
+	@within FastCast
+	@return Vector3 -- The current acceleration of the ActiveCast.
 
 ]=]
 function FastCast:GetAccelerationCast(cast: vaildcast)
 	assert(cast.StateInfo.UpdateConnection ~= nil, "ERR_OBJECT_DISPOSED")
-	local currentTrajectory = cast.StateInfo.Trajectories[#cast.StateInfo.Trajectories]
-	return GetVelocityAtTime(
-		cast.StateInfo.TotalRuntime - currentTrajectory.StartTime,
-		currentTrajectory.InitialVelocity,
-		currentTrajectory.Acceleration
-	)
+    local currentTrajectory = cast.StateInfo.Trajectories[#cast.StateInfo.Trajectories]
+    return currentTrajectory.Acceleration
 end
 
 --[=[
 
 Gets the position of an ActiveCast.
 
-@method GetPositionCast
-@param cast ActiveCastCompement | ActiveBlockcastCompement -- Compement
-@within FastCast
-@return Vector3 -- The current position of the ActiveCast.
+	@method GetPositionCast
+	@param cast vaildcast -- The active cast to get the position of.
+	@within FastCast
+	@return Vector3 -- The current position of the ActiveCast.
 ]=]
 function FastCast:GetPositionCast(cast: vaildcast)
 	assert(cast.StateInfo.UpdateConnection ~= nil, "ERR_OBJECT_DISPOSED")
@@ -508,10 +506,10 @@ end
 
 Sets the velocity of an ActiveCast to the specified Vector3.
 
-@method SetVelocityCast
-@param cast ActiveCastCompement | ActiveBlockcastCompement -- Compement
-@param velocity Vector3 -- The new velocity to set.
-@within FastCast
+	@method SetVelocityCast
+	@param cast vaildcast -- The active cast to modify.
+	@param velocity Vector3 -- The new velocity to set.
+	@within FastCast
 
 ]=]
 function FastCast:SetVelocityCast(cast: vaildcast, velocity: Vector3)
@@ -523,10 +521,10 @@ end
 
 Sets the acceleration of an ActiveCast to the specified Vector3.
 
-@method SetAccelerationCast
-@param cast ActiveCastCompement | ActiveBlockcastCompement -- Compement
-@param acceleration Vector3 -- The new acceleration to set.
-@within FastCast
+	@method SetAccelerationCast
+	@param cast vaildcast -- The active cast to modify.
+	@param acceleration Vector3 -- The new acceleration to set.
+	@within FastCast
 
 ]=]
 function FastCast:SetAccelerationCast(cast: vaildcast, acceleration: Vector3)
@@ -535,85 +533,85 @@ function FastCast:SetAccelerationCast(cast: vaildcast, acceleration: Vector3)
 end
 
 --[=[
+	Sets the position of an ActiveCast to the specified Vector3.
 
-Pauses simulation for an ActiveCast.
-
-@method PauseCast
-@param cast ActiveCastCompement | ActiveBlockcastCompement -- Compement
-@within FastCast
-
+	@method SetPositionCast
+	@param cast vaildcast -- The active cast to modify.
+	@param position Vector3 -- The new position to set.
+	@within FastCast
 ]=]
-function FastCast:PauseCast(cast: vaildcast)
-	assert(cast.StateInfo.UpdateConnection ~= nil, "ERR_OBJECT_DISPOSED")
-	cast.StateInfo.Paused = true
+function FastCast:SetPositionCast(cast: vaildcast, position: Vector3)
+    assert(cast.StateInfo.UpdateConnection ~= nil, "ERR_OBJECT_DISPOSED")
+    ModifyTransformation(cast, nil, nil, position)
 end
 
 --[=[
 
-Resumes simulation for an ActiveCast if it was paused previously.
+Pauses or resumes simulation for an ActiveCast.
 
-@method ResumeCast
-@param cast ActiveCastCompement | ActiveBlockcastCompement -- Compement
-@within FastCast
+	@method PauseCast
+	@param cast vaildcast -- The active cast to modify.
+	@param value boolean -- Whether to pause (true) or resume (false) the cast.
+	@within FastCast
 
 ]=]
-function FastCast:ResumeCast(cast: vaildcast)
+function FastCast:PauseCast(cast: vaildcast, value: boolean)
 	assert(cast.StateInfo.UpdateConnection ~= nil, "ERR_OBJECT_DISPOSED")
-	cast.StateInfo.Paused = false
+	cast.StateInfo.Paused = value
 end
 
 --[=[
 
 Add position to an ActiveCast with the specified Vector3.
 
-@method AddPositionCast
-@param cast ActiveCastCompement | ActiveBlockcastCompement -- Compement
-@param position Vector3 -- The new position to add.
-@within FastCast
+	@method AddPositionCast
+	@param cast vaildcast -- The active cast to modify.
+	@param position Vector3 -- The new position to add.
+	@within FastCast
 
 ]=]
 function FastCast:AddPositionCast(cast: vaildcast, position: Vector3)
 	assert(cast.StateInfo.UpdateConnection ~= nil, "ERR_OBJECT_DISPOSED")
-	self:SetPosition(cast, self:GetPosition(cast) + position)
+	self:SetPositionCast(cast, self:GetPositionCast(cast) + position)
 end
 
 --[=[
 
 Add velocity to an ActiveCast with the specified Vector3.
 
-@method AddVelocityCast
-@param cast ActiveCastCompement | ActiveBlockcastCompement -- Compement
-@param velocity Vector3 -- The new velocity to add.
-@within FastCast
+	@method AddVelocityCast
+	@param cast vaildcast -- The active cast to modify.
+	@param velocity Vector3 -- The new velocity to add.
+	@within FastCast
 
 ]=]
 function FastCast:AddVelocityCast(cast: vaildcast, velocity: Vector3)
 	assert(cast.StateInfo.UpdateConnection ~= nil, "ERR_OBJECT_DISPOSED")
-	self:SetVelocity(cast, self:GetVelocity(cast) + velocity)
+	self:SetVelocityCast(cast, self:GetVelocityCast(cast) + velocity)
 end
 
 --[=[
 
 Add acceleration to an ActiveCast with the specified Vector3.
 
-@method AddAccelerationCast
-@param cast ActiveCastCompement | ActiveBlockcastCompement -- Compement
-@param acceleration Vector3 -- The new acceleration to add.
-@within FastCast
+	@method AddAccelerationCast
+	@param cast vaildcast -- The active cast to modify.
+	@param acceleration Vector3 -- The new acceleration to add.
+	@within FastCast
 
 ]=]
 function FastCast:AddAccelerationCast(cast: vaildcast, acceleration: Vector3)
 	assert(cast.StateInfo.UpdateConnection ~= nil, "ERR_OBJECT_DISPOSED")
-	self:SetAcceleration(cast, self:GetAcceleration(cast) + acceleration)
+	self:SetAccelerationCast(cast, self:GetAccelerationCast(cast) + acceleration)
 end
 
 --[=[
 
 Synchronize new changes to the ActiveCast.
 
-@method SyncChangesToCast
-@param cast ActiveCastCompement | ActiveBlockcastCompement -- Compement
-@within FastCast
+	@method SyncChangesToCast
+	@param cast vaildcast -- The active cast to synchronize.
+	@within FastCast
 
 ]=]
 function FastCast:SyncChangesToCast(cast: vaildcast)
@@ -624,8 +622,8 @@ end
 --[=[
 	Terminate function for casts
 	@method TerminateCast
-	@param cast ActiveCastCompement | ActiveBlockcastCompement -- Compement
-	@param castTerminatingFunction (cast: vaildcast) -> () -- Function to be called when the cast is terminating
+	@param cast vaildcast -- The active cast to terminate.
+	@param castTerminatingFunction (cast: vaildcast) -> ())? -- Optional callback invoked just before the cast is terminated.
 	@within FastCast
 ]=]
 function FastCast:TerminateCast(cast: vaildcast, castTerminatingFunction: TypeDef.OnCastTerminatingFunction?)
@@ -655,23 +653,6 @@ function FastCast:TerminateCast(cast: vaildcast, castTerminatingFunction: TypeDe
 	for key, _ in (cast :: any) do
 		cast[key] = nil
 	end
-end
-
---[=[
-	Calls a function safely.
-	@method SafeCall
-	@within FastCast
-	@private
-
-	@param f (any)
-	@return any -- The result of the function call.
-]=]
-function FastCast:SafeCall(f: (...any) -> ...any, ...)
-	-- am i tripping
-	if f then
-		return f(...)
-	end
-	return nil
 end
 
 --[=[
@@ -744,8 +725,8 @@ function FastCast:Destroy()
 
 	-- I'm making sure that everything is destroyed here lmao
 	DestroySignal(self.LengthChanged)
-	DestroySignal(self.RayHit)
-	DestroySignal(self.RayPierced)
+	DestroySignal(self.Hit)
+	DestroySignal(self.Pierced)
 	DestroySignal(self.CastTerminating)
 	DestroySignal(self.CastFire)
 

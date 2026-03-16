@@ -45,8 +45,8 @@ local ActiveCastCleaner: BindableEvent = nil
 local ObjectCache: BindableEvent? = nil
 local CacheHolder = nil
 local NextProjectileID = 0
-
 local SyncChanges: BindableEvent = nil
+local CastFireFunc = nil
 
 -- Private functions
 
@@ -76,20 +76,13 @@ local function HandleBulkMoveTo()
 end
 
 local function SendCastFire(
-	cast: TypeDefinitions.ActiveCastData,
+	cast: TypeDef.ActiveCastData,
 	origin: Vector3,
 	direction: Vector3,
 	velocity: Vector3 | number,
 	behavior: TypeDef.FastCastBehavior
 )
 	cast.Caster.Output:Fire("CastFire", cast, origin, direction, velocity, behavior)
-end
-
-local function GetCastFireFunction()
-	if FastCastEventsModule then
-		local loadedModule = require(FastCastEventsModule)
-		return loadedModule.CastFire
-	end
 end
 
 --[=[
@@ -143,7 +136,7 @@ function BaseCast.Init(BindableOutput: BindableEvent, Data: any)
 	SyncChanges.Name = "SyncChanges"
 	SyncChanges.Parent = Actor
 
-	SyncChanges.Event:Connect(function(cast: TypeDef.ActiveCastCompement)
+	SyncChanges.Event:Connect(function(cast: TypeDef.ActiveCastData)
 		local ID = cast.ID
 		local TargetCast = Actives[ID]
 
@@ -196,9 +189,8 @@ function BaseCast:Raycast(
 		SendCastFire(Actives[NextProjectileID], Origin, Direction, Velocity, Behavior)
 	end
 	if Behavior.FastCastEventsModuleConfig.UseCastFire then
-		local CastFireFunction = GetCastFireFunction()
-		if CastFireFunction then
-			CastFireFunction(Actives[NextProjectileID], Origin, Direction, Velocity, Behavior)
+		if CastFireFunc then
+			CastFireFunc(Actives[NextProjectileID], Origin, Direction, Velocity, Behavior)
 		end
 	end
 end
@@ -213,6 +205,14 @@ end
 ]=]
 function BaseCast:SetFastCastEventsModule(moduleScript: ModuleScript)
 	FastCastEventsModule = moduleScript
+	if moduleScript and typeof(moduleScript) == "Instance" and moduleScript:IsA("ModuleScript") then
+		CastFireFunc = require(moduleScript)
+		if CastFireFunc.CastFire then
+			CastFireFunc = CastFireFunc.CastFire
+		else
+			CastFireFunc = nil
+		end
+	end
 end
 
 --[=[
@@ -253,9 +253,8 @@ function BaseCast:Blockcast(
 		SendCastFire(Actives[NextProjectileID], Origin, Direction, Velocity, Behavior)
 	end
 	if Behavior.FastCastEventsModuleConfig.UseCastFire then
-		local CastFireFunction = GetCastFireFunction()
-		if CastFireFunction then
-			CastFireFunction(Actives[NextProjectileID], Origin, Direction, Velocity, Behavior)
+		if CastFireFunc then
+			CastFireFunc(Actives[NextProjectileID], Origin, Direction, Velocity, Behavior)
 		end
 	end
 end
@@ -298,9 +297,8 @@ function BaseCast:Spherecast(
 		SendCastFire(Actives[NextProjectileID], Origin, Direction, Velocity, Behavior)
 	end
 	if Behavior.FastCastEventsModuleConfig.UseCastFire then
-		local CastFireFunction = GetCastFireFunction()
-		if CastFireFunction then
-			CastFireFunction(Actives[NextProjectileID], Origin, Direction, Velocity, Behavior)
+		if CastFireFunc then
+			CastFireFunc(Actives[NextProjectileID], Origin, Direction, Velocity, Behavior)
 		end
 	end
 end
@@ -317,7 +315,9 @@ Enables or disables the BulkMoveTo feature.
 ]=]
 function BaseCast:BindBulkMoveTo(bool: boolean)
 	if bool then
-		BulkMoveToConnection = RS.PreRender:ConnectParallel(HandleBulkMoveTo)
+		if not BulkMoveToConnection then
+    		BulkMoveToConnection = RS.PreRender:ConnectParallel(HandleBulkMoveTo)
+		end
 	else
 		if BulkMoveToConnection then
 			BulkMoveToConnection:Disconnect()

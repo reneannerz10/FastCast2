@@ -30,7 +30,7 @@ local EnumCastTypes = FastCastEnums.CastType
 
 -- Debugging
 local DBG_SEGMENT_SUB_COLOR = Color3.new(0.286275, 0.329412, 0.247059)
-local DBG_SEGMENT_SUB_COLOR2 = Color3.new(0.286275, 0.329412, 0.247059)
+local DBG_SEGMENT_SUB_COLOR2 = Color3.new(0.454902, 0.933333, 0.011765)
 
 local DBG_HIT_SUB_COLOR = Color3.new(0.0588235, 0.87451, 1)
 
@@ -395,13 +395,13 @@ local function SimulateCast(
 
 	local point = currentTarget
 	local part: Instance? = nil
-	local material = Enum.Material.Air
+	--local material = Enum.Material.Air
 	--local normal = Vector3.new()
 
 	if resultOfCast ~= nil then
 		point = resultOfCast.Position
 		part = resultOfCast.Instance
-		material = resultOfCast.Material
+		--material = resultOfCast.Material
 		--normal = resultOfCast.Normal
 	end
 
@@ -510,6 +510,7 @@ local function SimulateCast(
 					warn(
 						"Cascading cast lag encountered! The caster attempted to perform a high fidelity cast before the previous one completed, resulting in exponential cast lag. Consider increasing HighFidelitySegmentSize."
 					)
+					return
 				end
 
 				cast.StateInfo.IsActivelyResimulating = true
@@ -875,6 +876,7 @@ function ActiveCast.createCastData(
 				warn(
 					"Cascading cast lag encountered! The caster attempted to perform a high fidelity cast before the previous one completed, resulting in exponential cast lag. Consider increasing HighFidelitySegmentSize."
 				)
+				return
 			end
 
 			cast.StateInfo.IsActivelyResimulating = true
@@ -928,7 +930,7 @@ function ActiveCast.createCastData(
 			end
 
 			for segmentIndex = 1, numSegmentsReal do
-				if cast == nil or next(cast) == nil then
+				if next(cast) == nil then
 					return
 				end
 				if cast.StateInfo.CancelHighResCast then
@@ -944,7 +946,7 @@ function ActiveCast.createCastData(
 				SimulateCast(cast, timeIncrement, FastCastEvents, variant)
 			end
 
-			if cast == nil or next(cast) == nil then
+			if next(cast) == nil then
 				return
 			end
 			cast.StateInfo.IsActivelyResimulating = false
