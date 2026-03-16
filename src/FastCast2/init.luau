@@ -449,10 +449,10 @@ end
 
 Gets the velocity of an ActiveCast.
 
-@method GetVelocityCast
-@param cast vaildcast -- The active cast to get the velocity of.
-@within FastCast
-@return Vector3 -- The current velocity of the ActiveCast.
+	@method GetVelocityCast
+	@param cast vaildcast -- The active cast to get the velocity of.
+	@within FastCast
+	@return Vector3 -- The current velocity of the ActiveCast.
 ]=]
 function FastCast:GetVelocityCast(cast: vaildcast)
 	assert(cast.StateInfo.UpdateConnection ~= nil, "ERR_OBJECT_DISPOSED")
@@ -468,10 +468,10 @@ end
 
 Gets the acceleration of an ActiveCast.
 
-@method GetAccelerationCast
-@param cast vaildcast -- The active cast to get the acceleration of.
-@within FastCast
-@return Vector3 -- The current acceleration of the ActiveCast.
+	@method GetAccelerationCast
+	@param cast vaildcast -- The active cast to get the acceleration of.
+	@within FastCast
+	@return Vector3 -- The current acceleration of the ActiveCast.
 
 ]=]
 function FastCast:GetAccelerationCast(cast: vaildcast)
@@ -484,10 +484,10 @@ end
 
 Gets the position of an ActiveCast.
 
-@method GetPositionCast
-@param cast vaildcast -- The active cast to get the position of.
-@within FastCast
-@return Vector3 -- The current position of the ActiveCast.
+	@method GetPositionCast
+	@param cast vaildcast -- The active cast to get the position of.
+	@within FastCast
+	@return Vector3 -- The current position of the ActiveCast.
 ]=]
 function FastCast:GetPositionCast(cast: vaildcast)
 	assert(cast.StateInfo.UpdateConnection ~= nil, "ERR_OBJECT_DISPOSED")
@@ -504,10 +504,10 @@ end
 
 Sets the velocity of an ActiveCast to the specified Vector3.
 
-@method SetVelocityCast
-@param cast vaildcast -- The active cast to modify.
-@param velocity Vector3 -- The new velocity to set.
-@within FastCast
+	@method SetVelocityCast
+	@param cast vaildcast -- The active cast to modify.
+	@param velocity Vector3 -- The new velocity to set.
+	@within FastCast
 
 ]=]
 function FastCast:SetVelocityCast(cast: vaildcast, velocity: Vector3)
@@ -519,10 +519,10 @@ end
 
 Sets the acceleration of an ActiveCast to the specified Vector3.
 
-@method SetAccelerationCast
-@param cast vaildcast -- The active cast to modify.
-@param acceleration Vector3 -- The new acceleration to set.
-@within FastCast
+	@method SetAccelerationCast
+	@param cast vaildcast -- The active cast to modify.
+	@param acceleration Vector3 -- The new acceleration to set.
+	@within FastCast
 
 ]=]
 function FastCast:SetAccelerationCast(cast: vaildcast, acceleration: Vector3)
@@ -562,10 +562,10 @@ end
 
 Add position to an ActiveCast with the specified Vector3.
 
-@method AddPositionCast
-@param cast vaildcast -- The active cast to modify.
-@param position Vector3 -- The new position to add.
-@within FastCast
+	@method AddPositionCast
+	@param cast vaildcast -- The active cast to modify.
+	@param position Vector3 -- The new position to add.
+	@within FastCast
 
 ]=]
 function FastCast:AddPositionCast(cast: vaildcast, position: Vector3)
@@ -577,10 +577,10 @@ end
 
 Add velocity to an ActiveCast with the specified Vector3.
 
-@method AddVelocityCast
-@param cast vaildcast -- The active cast to modify.
-@param velocity Vector3 -- The new velocity to add.
-@within FastCast
+	@method AddVelocityCast
+	@param cast vaildcast -- The active cast to modify.
+	@param velocity Vector3 -- The new velocity to add.
+	@within FastCast
 
 ]=]
 function FastCast:AddVelocityCast(cast: vaildcast, velocity: Vector3)
@@ -592,10 +592,10 @@ end
 
 Add acceleration to an ActiveCast with the specified Vector3.
 
-@method AddAccelerationCast
-@param cast vaildcast -- The active cast to modify.
-@param acceleration Vector3 -- The new acceleration to add.
-@within FastCast
+	@method AddAccelerationCast
+	@param cast vaildcast -- The active cast to modify.
+	@param acceleration Vector3 -- The new acceleration to add.
+	@within FastCast
 
 ]=]
 function FastCast:AddAccelerationCast(cast: vaildcast, acceleration: Vector3)
@@ -607,9 +607,9 @@ end
 
 Synchronize new changes to the ActiveCast.
 
-@method SyncChangesToCast
-@param cast vaildcast -- The active cast to synchronize.
-@within FastCast
+	@method SyncChangesToCast
+	@param cast vaildcast -- The active cast to synchronize.
+	@within FastCast
 
 ]=]
 function FastCast:SyncChangesToCast(cast: vaildcast)
