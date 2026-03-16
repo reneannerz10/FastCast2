@@ -205,7 +205,14 @@ end
 ]=]
 function BaseCast:SetFastCastEventsModule(moduleScript: ModuleScript)
 	FastCastEventsModule = moduleScript
-	CastFireFunc = require(moduleScript).CastFire
+	if moduleScript and typeof(moduleScript) == "Instance" and moduleScript:IsA("ModuleScript") then
+		CastFireFunc = require(moduleScript)
+		if CastFireFunc.CastFire then
+			CastFireFunc = CastFireFunc.CastFire
+		else
+			CastFireFunc = nil
+		end
+	end
 end
 
 --[=[

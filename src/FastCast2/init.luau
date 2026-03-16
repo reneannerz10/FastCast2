@@ -318,7 +318,9 @@ function FastCast:Init(
 	self.ObjectCacheEnabled = useObjectCache
 	self.BulkMoveEnabled = useBulkMoveTo
 	
-	self:SetFastCastEventsModule(FastCastEventsModule)
+	if FastCastEventsModule then
+		self:SetFastCastEventsModule(FastCastEventsModule)
+	end
 	
 
 	if not useObjectCache then
