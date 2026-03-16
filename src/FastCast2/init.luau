@@ -476,12 +476,8 @@ Gets the acceleration of an ActiveCast.
 ]=]
 function FastCast:GetAccelerationCast(cast: vaildcast)
 	assert(cast.StateInfo.UpdateConnection ~= nil, "ERR_OBJECT_DISPOSED")
-	local currentTrajectory = cast.StateInfo.Trajectories[#cast.StateInfo.Trajectories]
-	return GetVelocityAtTime(
-		cast.StateInfo.TotalRuntime - currentTrajectory.StartTime,
-		currentTrajectory.InitialVelocity,
-		currentTrajectory.Acceleration
-	)
+    local currentTrajectory = cast.StateInfo.Trajectories[#cast.StateInfo.Trajectories]
+    return currentTrajectory.Acceleration
 end
 
 --[=[
@@ -604,8 +600,7 @@ Add acceleration to an ActiveCast with the specified Vector3.
 ]=]
 function FastCast:AddAccelerationCast(cast: vaildcast, acceleration: Vector3)
 	assert(cast.StateInfo.UpdateConnection ~= nil, "ERR_OBJECT_DISPOSED")
-    local currentTrajectory = cast.StateInfo.Trajectories[#cast.StateInfo.Trajectories]
-    return currentTrajectory.Acceleration
+	self:SetAccelerationCast(cast, self:GetAcceleration(cast) + acceleration)
 end
 
 --[=[
