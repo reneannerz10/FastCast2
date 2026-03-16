@@ -654,23 +654,6 @@ function FastCast:TerminateCast(cast: vaildcast, castTerminatingFunction: TypeDe
 end
 
 --[=[
-	Calls a function safely.
-	@method SafeCall
-	@within FastCast
-	@private
-
-	@param f (any)
-	@return any -- The result of the function call.
-]=]
-function FastCast:SafeCall(f: (...any) -> ...any, ...)
-	-- am i tripping
-	if f then
-		return f(...)
-	end
-	return nil
-end
-
---[=[
 	Sets whether BulkMoveTo is enabled for this Caster.
 	@method SetBulkMoveEnabled
 	@within FastCast
