@@ -545,11 +545,12 @@ end
 
 --[=[
 
-Pauses simulation for an ActiveCast.
+Pauses or resumes simulation for an ActiveCast.
 
-@method PauseCast
-@param cast ActiveCastCompement | ActiveBlockcastCompement -- Compement
-@within FastCast
+	@method PauseCast
+	@param cast vaildcast -- The active cast to modify.
+	@param value boolean -- Whether to pause (true) or resume (false) the cast.
+	@within FastCast
 
 ]=]
 function FastCast:PauseCast(cast: vaildcast, value: boolean)
