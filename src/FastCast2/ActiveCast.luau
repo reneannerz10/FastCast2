@@ -30,7 +30,7 @@ local EnumCastTypes = FastCastEnums.CastType
 
 -- Debugging
 local DBG_SEGMENT_SUB_COLOR = Color3.new(0.286275, 0.329412, 0.247059)
-local DBG_SEGMENT_SUB_COLOR2 = Color3.new(0.286275, 0.329412, 0.247059)
+local DBG_SEGMENT_SUB_COLOR2 = Color3.new(0.454902, 0.933333, 0.011765)
 
 local DBG_HIT_SUB_COLOR = Color3.new(0.0588235, 0.87451, 1)
 

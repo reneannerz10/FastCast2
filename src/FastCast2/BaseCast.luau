@@ -76,7 +76,7 @@ local function HandleBulkMoveTo()
 end
 
 local function SendCastFire(
-	cast: TypeDefinitions.ActiveCastData,
+	cast: TypeDef.ActiveCastData,
 	origin: Vector3,
 	direction: Vector3,
 	velocity: Vector3 | number,
