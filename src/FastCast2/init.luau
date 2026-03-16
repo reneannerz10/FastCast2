@@ -574,7 +574,7 @@ Add position to an ActiveCast with the specified Vector3.
 ]=]
 function FastCast:AddPositionCast(cast: vaildcast, position: Vector3)
 	assert(cast.StateInfo.UpdateConnection ~= nil, "ERR_OBJECT_DISPOSED")
-	self:SetPosition(cast, self:GetPosition(cast) + position)
+	self:SetPositionCast(cast, self:GetPosition(cast) + position)
 end
 
 --[=[
@@ -589,7 +589,7 @@ Add velocity to an ActiveCast with the specified Vector3.
 ]=]
 function FastCast:AddVelocityCast(cast: vaildcast, velocity: Vector3)
 	assert(cast.StateInfo.UpdateConnection ~= nil, "ERR_OBJECT_DISPOSED")
-	self:SetVelocity(cast, self:GetVelocity(cast) + velocity)
+	self:SetVelocityCast(cast, self:GetVelocity(cast) + velocity)
 end
 
 --[=[
@@ -604,7 +604,7 @@ Add acceleration to an ActiveCast with the specified Vector3.
 ]=]
 function FastCast:AddAccelerationCast(cast: vaildcast, acceleration: Vector3)
 	assert(cast.StateInfo.UpdateConnection ~= nil, "ERR_OBJECT_DISPOSED")
-	self:SetAcceleration(cast, self:GetAcceleration(cast) + acceleration)
+	self:SetAccelerationCast(cast, self:GetAcceleration(cast) + acceleration)
 end
 
 --[=[
