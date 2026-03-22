@@ -18,7 +18,6 @@ local Configs = require(FastCastModule:WaitForChild("Configs"))
 local DebugLogging = Configs.DebugLogging
 local FastCastEnums = require(FastCastModule:WaitForChild("FastCastEnums"))
 -- Constants
-local MAX_PIERCE_TEST_COUNT = 100
 local FC_VIS_OBJ_NAME = "FastCastVisualizationObjects"
 local MAX_SEGMENT_CAL_TIME = 0.016 * 5 -- 80ms
 local MAX_CASTING_TIME = 0.2 -- 200ms
