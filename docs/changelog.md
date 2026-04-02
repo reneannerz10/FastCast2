@@ -11,28 +11,59 @@ and this project adheres to Semantic Versioning (https://semver.org/).
 
 ---
 
-## [0.0.9] — 2026-02-22
-### Changelog
+## [0.0.9] — 2026-03-03
+
+### Changed
 - Refactored ActiveCast.luau
 - Merged ActiveBlockcast.luau and ActiveSpherecast.luau with ActiveCast.luau
 - Updated TypeDef, Enums, FastCastVMs
+- Removed FastCast:SafeCall(func, ...)
+- Changed CFrame.new() to CFrame.new(origin) in ActiveCast.luau
 
 ### Fixed
-
 - Spherecast not working
 - Type errors
 - Typo fixes
 - No longer errors now when attempting to index with FastCastEvents with guarding
-- Fixed CanPierce logic
+- Fix CanPierce logic and unnecessary things
+- Fix unnamed parameters in all callback function types
+- Fix incorrect union types on Caster signal fields (removed RBXScriptSignal, RBXScriptConnection)
+- Fix GetVelocityCast and AddAccelerationCast signatures
+- Fix SphereCastRayInfo `@type` doc copying BlockCastRayInfo
+- Fix OnCastFireFunction `@type` unnamed parameters
+- Remove stale RBXScriptSignal references from Caster `@type` doc
+- Fixed GetAccelerationCast returning velocity instead of acceleration
+- Fixed AddPositionCast, AddVelocityCast, AddAccelerationCast calling nonexistent methods
+- Fixed missing return after cascading cast warn in SimulateCast and Stepped
+- Fixed Destroy referencing RayHit/RayPierced instead of Hit/Pierced
+- Fixed DBG_SEGMENT_SUB_COLOR2 being identical to DBG_SEGMENT_SUB_COLOR
+- Fixed numWorkers assertion from > 1 to >= 1
+- Fixed BulkMoveTo double-connection guard in BindBulkMoveTo
 
-## [0.0.8] — 2026-02-22
+### Removed
+- Removed unused SafeCall, material, and dead code
+
+### Improved
+- Merged ResumeCast into PauseCast(cast, value) for simplicity
+- Added missing SetPositionCast method
+- Updated all doc comments to use vaildcast type consistently
+- Add guarding for SetFastCastEventsModule
+- Cached CastFire from require FastCastEventsModule result in SetFastCastEventsModule
+- Removed unused variables in ActiveCast.luau and BaseCast.luau
+
+## [0.0.8] — 2026-02-21
+
 ### Added
-- Spherecast feature — adds sphere-based casting for broader collision detection and hits testing.
+- Spherecast feature — adds sphere-based casting for broader collision detection and hit testing.
 
 ### Changed
 - Blockcast visualization no longer stretched by cast length.
 - Cleaned up code and performed minor refactors for readability.
 - Updated documentation comments for clarity.
+
+### Fixed
+- Type errors
+- FastCast2 now uses copy table instead of shared table for .newBehavior()
 
 ## [0.0.7] - 2026-02-11
 
