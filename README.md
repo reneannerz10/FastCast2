@@ -126,7 +126,7 @@ castBehavior.FastCastEventsConfig = {
 -- Caster
 local Caster = FastCastM.new()
 Caster:Init(
-	4, -- Roblox limits at 4 :(
+	4,
 	RepFirst,
 	"CastVMs",
 	RepFirst,
