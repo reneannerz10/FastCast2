@@ -137,7 +137,7 @@ Caster:Init(
 
 -- Functions
 
-local function OnCastTerminating(cast: FastCastTypes.ActiveCastCompement)
+local function OnCastTerminating(cast: FastCastTypes.ActiveCastData)
 	local obj = cast.RayInfo.CosmeticBulletObject
 	if obj then 
 		obj:Destroy()
@@ -198,7 +198,7 @@ local module: TypeDef.FastCastEvents = {}
 local debounce = false
 local debounce_time = 0.2
 
-module.LengthChanged = function(cast : TypeDef.ActiveCast)
+module.LengthChanged = function(cast : TypeDef.ActiveCastData)
 	if not debounce then
 		debounce = true
 		print("OnLengthChanged Test")
@@ -220,7 +220,7 @@ module.RayHit = function()
 	print("Hit!")
 end
 
-module.CanPierce = function(cast, resultOfCast : RaycastResult, segmentVelocity, CosmeticBulletObject)
+module.CanPierce = function(cast : TypeDef.ActiveCastData, resultOfCast : RaycastResult, segmentVelocity, CosmeticBulletObject)
 	local CanPierce = false
 	if resultOfCast.Instance:GetAttribute("CanPierce") == true then
 		CanPierce = true
